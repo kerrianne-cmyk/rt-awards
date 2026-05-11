@@ -232,7 +232,7 @@ function VotingScreen({ voter, onComplete }) {
             value={reasons[cat.id]||""}
             onChange={e => setReasons({...reasons,[cat.id]:e.target.value})}
             rows={2}
-            style={{ width:"100%",background:"rgba(255,255,255,0.04)",border:`1px solid ${cat.color}40`,borderRadius:"12px",padding:"14px 16px",color:"#fff",fontSize:"14px",fontFamily:"'DM Sans',sans-serif" }}
+            style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.04)",border:`1px solid ${cat.color}40`,borderRadius:"12px",padding:"14px 16px",color:"#fff",fontSize:"14px",fontFamily:"'DM Sans',sans-serif" }}
           />
         </div>
       )}
