@@ -1,4 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  "https://rjlblqbbzstsdhgodmyx.supabase.co",
+  "sb_publishable_Ob8HdKTDu2RTm_fXZ2cQrQ_4RM5l-3S"
+);
 
 const STAFF = ["Georgie", "Stew", "Amanda", "Sid", "Jason", "Emma", "Kerrianne"];
 const ADMIN_PASSWORD = "rehab2026";
@@ -12,19 +18,6 @@ const CATEGORIES = [
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const currentMonth = MONTHS[new Date().getMonth()];
 
-// ── SEED HISTORY DATA (demo) ─────────────────────────────────────────────────
-const SEED_HISTORY = [
-  {
-    month: MONTHS[(new Date().getMonth() + 10) % 12],
-    year: new Date().getFullYear(),
-    winners: { client_champion: "Georgie", unsung_hero: "Jason", good_energy: "Emma" },
-  },
-  {
-    month: MONTHS[(new Date().getMonth() + 11) % 12],
-    year: new Date().getFullYear(),
-    winners: { client_champion: "Sid", unsung_hero: "Stew", good_energy: "Georgie" },
-  },
-];
 
 // ── CONFETTI ─────────────────────────────────────────────────────────────────
 function Confetti({ active }) {
@@ -630,22 +623,78 @@ export default function App() {
   const [screen, setScreen] = useState("voter");
   const [voter, setVoter] = useState(null);
   const [allVotes, setAllVotes] = useState({});
-  const [history, setHistory] = useState(SEED_HISTORY);
+  const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // ── Load data from Supabase on mount ───────────────────────────────────────
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+
+      // Fetch votes for current month
+      const { data: votesData, error: votesErr } = await supabase
+        .from("votes")
+        .select("*")
+        .eq("month", currentMonth)
+        .eq("year", new Date().getFullYear());
+
+      if (!votesErr && votesData) {
+        const rebuilt = {};
+        votesData.forEach(row => {
+          if (!rebuilt[row.voter_name]) {
+            rebuilt[row.voter_name] = { votes: {}, reasons: {} };
+          }
+          rebuilt[row.voter_name].votes[row.category_id] = row.nominee;
+          rebuilt[row.voter_name].reasons[row.category_id] = row.reason || "";
+        });
+        setAllVotes(rebuilt);
+      }
+
+      // Fetch history
+      const { data: historyData, error: histErr } = await supabase
+        .from("history")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (!histErr && historyData) {
+        setHistory(historyData.map(h => ({
+          month: h.month,
+          year: h.year,
+          winners: h.winners,
+        })));
+      }
+
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
   function handleVoterSelect(name) {
     if (allVotes[name]) { alert(`${name} has already voted this month.`); return; }
     setVoter(name); setScreen("voting");
   }
 
-  function handleVotingComplete(votes, reasons) {
+  async function handleVotingComplete(votes, reasons) {
+    const rows = CATEGORIES.map(cat => ({
+      voter_name: voter,
+      month: currentMonth,
+      year: new Date().getFullYear(),
+      category_id: cat.id,
+      nominee: votes[cat.id],
+      reason: reasons[cat.id] || "",
+    }));
+
+    const { error } = await supabase.from("votes").insert(rows);
+    if (error) { alert("Error saving votes — please try again."); return; }
+
     setAllVotes(prev => ({ ...prev, [voter]: { votes, reasons } }));
     setShowConfetti(true);
     setScreen("thanks");
     setTimeout(() => setShowConfetti(false), 4000);
   }
 
-  function handleSaveMonth() {
+  async function handleSaveMonth() {
     // Build winners from current votes
     const catTotals = {};
     CATEGORIES.forEach(cat => {
@@ -663,9 +712,34 @@ export default function App() {
       const sorted = Object.entries(catTotals[cat.id]).sort((a,b)=>b[1]-a[1]);
       winners[cat.id] = sorted[0]&&sorted[0][1]>0 ? sorted[0][0] : null;
     });
+
+    const { error: histErr } = await supabase.from("history").insert([{
+      month: currentMonth,
+      year: new Date().getFullYear(),
+      winners,
+    }]);
+    if (histErr) { alert("Error archiving month — please try again."); return; }
+
+    await supabase.from("votes")
+      .delete()
+      .eq("month", currentMonth)
+      .eq("year", new Date().getFullYear());
+
     setHistory(prev => [...prev, { month: currentMonth, year: new Date().getFullYear(), winners }]);
     setAllVotes({});
     alert(`${currentMonth} archived to history. Votes have been reset for next month.`);
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight:"100vh",background:"#0a1628",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'DM Sans',sans-serif" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');`}</style>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ fontSize:"40px",marginBottom:"16px" }}>🏆</div>
+          <p style={{ color:"#6b7fa3",fontSize:"15px" }}>Loading…</p>
+        </div>
+      </div>
+    );
   }
 
   return (
