@@ -131,6 +131,23 @@ function VoterScreen({ onSelect, allVotes, onAdminClick, history }) {
         <p style={{ color:"#6b7fa3",fontSize:"16px" }}>{currentMonth} — Who's getting your vote?</p>
       </div>
 
+      {/* Category previews */}
+      <div style={{ display:"flex",gap:"10px",width:"100%",maxWidth:"620px",marginBottom:"36px",flexWrap:"wrap",justifyContent:"center" }}>
+        {CATEGORIES.map(cat => (
+          <div key={cat.id} style={{
+            flex:"1",minWidth:"160px",
+            background:`${cat.color}0d`,
+            border:`1px solid ${cat.color}25`,
+            borderRadius:"14px",padding:"14px 16px",
+            textAlign:"center",
+          }}>
+            <div style={{ fontSize:"22px",marginBottom:"6px" }}>{cat.emoji}</div>
+            <div style={{ color:cat.color,fontSize:"12px",fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:"5px" }}>{cat.title}</div>
+            <div style={{ color:"#6b7fa3",fontSize:"12px",lineHeight:1.5 }}>{cat.description}</div>
+          </div>
+        ))}
+      </div>
+
       <div style={{ fontSize:"13px",letterSpacing:"3px",color:"#6b7fa3",textTransform:"uppercase",marginBottom:"20px",fontWeight:500 }}>
         Who are you?
       </div>
