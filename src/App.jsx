@@ -341,7 +341,7 @@ function AdminLogin({ onSuccess, onBack }) {
         <input type="password" placeholder="Password" value={pw}
           onChange={e => setPw(e.target.value)}
           onKeyDown={e => e.key==="Enter" && attempt()}
-          style={{ width:"100%",background:"rgba(255,255,255,0.06)",border:`1px solid ${error?"#ff6b6b":"rgba(255,255,255,0.1)"}`,borderRadius:"10px",padding:"12px 16px",color:"#fff",fontSize:"15px",fontFamily:"'DM Sans',sans-serif",marginBottom:"12px",transition:"border 0.2s" }}
+          style={{ width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.06)",border:`1px solid ${error?"#ff6b6b":"rgba(255,255,255,0.1)"}`,borderRadius:"10px",padding:"12px 16px",color:"#fff",fontSize:"15px",fontFamily:"'DM Sans',sans-serif",marginBottom:"12px",transition:"border 0.2s" }}
         />
         {error && <p style={{ color:"#ff6b6b",fontSize:"13px",marginBottom:"12px" }}>Incorrect password</p>}
         <button onClick={attempt} style={{ background:"#30E7D1",border:"none",borderRadius:"10px",padding:"12px",width:"100%",color:"#0a1628",fontSize:"15px",fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",marginBottom:"12px" }}>Enter</button>
