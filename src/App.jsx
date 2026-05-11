@@ -135,7 +135,7 @@ function VoterScreen({ onSelect, allVotes, onAdminClick, history }) {
         Who are you?
       </div>
 
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:"12px",width:"100%",maxWidth:"620px" }}>
+      <div style={{ display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"12px",width:"100%",maxWidth:"620px" }}>
         {STAFF.map(name => {
           const voted = !!allVotes[name];
           const wasWinner = prevWinners.includes(name);
@@ -153,6 +153,7 @@ function VoterScreen({ onSelect, allVotes, onAdminClick, history }) {
                 transition:"all 0.2s ease",
                 transform:hovered===name&&!voted?"translateY(-2px)":"none",
                 fontFamily:"'DM Sans',sans-serif",position:"relative",
+                width:"140px",
               }}>
               {voted ? "✓ " : ""}{name}
 
